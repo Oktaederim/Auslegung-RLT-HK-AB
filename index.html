@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bedarfsrechner (Schnell-Analyse)</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Bedarfsrechner (Schnell-Analyse)</h1>
+        <p class="subtitle">Ermittlung von Luftbedarf, Heiz- und Kühllast</p>
+    </header>
+
+    <main>
+        <div class="card">
+            <h2>1. Raum- und Gebäudedaten</h2>
+            <div class="grid-container">
+                <div class="input-group">
+                    <label for="raumtyp">Raumtyp</label>
+                    <select id="raumtyp">
+                        <option value="buero">Büro / Verwaltung</option>
+                        <option value="seminar">Seminar- / Besprechungsraum</option>
+                        <option value="labor">Labor (Standard)</option>
+                        <option value="technik">Technik- / Serverraum</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="gebaeudetyp">Gebäudetyp (vereinfacht)</label>
+                    <select id="gebaeudetyp">
+                        <option value="altbau">Typ Hochschule Altbau (ca. 70er/80er)</option>
+                        <option value="modern">Typ Hochschule Modern (nach 2002)</option>
+                    </select>
+                </div>
+            </div>
+             <div class="grid-container">
+                <div class="input-group">
+                    <label>Raumabmessungen (in Meter)</label>
+                    <div class="dimension-group">
+                        <input type="number" id="raumLaenge" value="8" placeholder="Länge">
+                        <input type="number" id="raumBreite" value="6" placeholder="Breite">
+                        <input type="number" id="raumHoehe" value="3" placeholder="Höhe">
+                    </div>
+                </div>
+                 <div class="input-group">
+                    <label for="fensterFlaeche">Fensterfläche (ca. in m²)</label>
+                    <input type="number" id="fensterFlaeche" value="10">
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>2. Interne Lasten & Nutzung</h2>
+            <div class="grid-container">
+                <div class="input-group">
+                    <label for="personenAnzahl">Anzahl der Personen im Raum</label>
+                    <input type="number" id="personenAnzahl" value="4">
+                </div>
+                <div class="input-group">
+                    <label for="geraeteLast">Technische Last (PC, Monitore, etc.) in Watt</label>
+                    <input type="number" id="geraeteLast" value="800">
+                </div>
+                 <div class="input-group">
+                    <label for="lichtLast">Beleuchtungslast in Watt</label>
+                    <input type="number" id="lichtLast" value="300">
+                </div>
+            </div>
+        </div>
+
+        <div class="card result-card">
+            <h2>3. Ergebnis: Auslegungsbedarf</h2>
+            <div class="result-grid">
+                <div class="result-item">
+                    <span class="result-label">Erforderlicher Luftvolumenstrom</span>
+                    <span class="result-value" id="res-volumenstrom">-- m³/h</span>
+                    <p class="result-info" id="info-volumenstrom">Grundlage: --</p>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Heizlast (Winter)</span>
+                    <span class="result-value" id="res-heizlast">-- kW</span>
+                    <p class="result-info" id="info-heizlast">Bei -10°C Außentemperatur</p>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Kühllast (Sommer)</span>
+                    <span class="result-value" id="res-kuehllast">-- kW</span>
+                     <p class="result-info" id="info-kuehllast">Bei 32°C & Sonneneinstrahlung</p>
+                </div>
+            </div>
+            <div id="erlaeuterung" class="erlaeuterung"></div>
+        </div>
+    </main>
+
+    <footer class="footer"><p>Schnell-Analyse-Rechner | Erstellt mit Gemini</p></footer>
+</div>
+<script src="script.js"></script>
+</body>
+</html>
