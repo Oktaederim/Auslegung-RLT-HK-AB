@@ -17,14 +17,13 @@ document.addEventListener('DOMContentLoaded', () => {
         resHeizlast: document.getElementById('res-heizlast'),
         resKuehllast: document.getElementById('res-kuehllast'),
         erlaeuterung: document.getElementById('erlaeuterung'),
-        // NEU: Hinweis-Box
+        // Hinweis-Box
         hinweisBox: document.getElementById('hinweis-box'),
     };
 
     const allInputs = document.querySelectorAll('input, select');
     allInputs.forEach(input => input.addEventListener('input', calculateAll));
 
-    // --- Voreinstellungen und Konstanten ---
     const presets = {
         raumtypen: {
             buero: { personenLast: 100, luftratePerson: 36, luftwechsel: 0, maxPersonenProM2: 0.2 }, // 5 m²/Person
@@ -32,7 +31,6 @@ document.addEventListener('DOMContentLoaded', () => {
             labor: { personenLast: 140, luftratePerson: 36, luftwechsel: 8, maxPersonenProM2: 0.2 },
             technik: { personenLast: 0, luftratePerson: 0, luftwechsel: 2, maxPersonenProM2: 0 },
         },
-        // U-Werte in W/m²K
         gebaeude: {
             unsaniert_alt: { u_wand: 1.4, u_fenster: 2.8, u_dach: 0.8 },
             saniert_alt: { u_wand: 0.8, u_fenster: 1.9, u_dach: 0.4 },
@@ -40,11 +38,11 @@ document.addEventListener('DOMContentLoaded', () => {
             modern: { u_wand: 0.25, u_fenster: 0.9, u_dach: 0.18 },
         },
         temperaturen: {
-            innen_winter: 21, aussen_winter: -10, // NRW Auslegungstemperatur
+            innen_winter: 21, aussen_winter: -10,
             innen_sommer: 24, aussen_sommer: 32,
         },
-        sonnenlast_fenster: 150, // W/m²
-        cp_luft: 0.34, // Wh/m³K
+        sonnenlast_fenster: 150,
+        cp_luft: 0.34,
     };
 
     function updateDefaults() {
@@ -68,9 +66,8 @@ document.addEventListener('DOMContentLoaded', () => {
     dom.raumtyp.addEventListener('change', updateDefaults);
 
     function calculateAll() {
-        const hinweise = []; // Array für alle Hinweise
+        const hinweise = []; 
         
-        // 1. Eingabewerte sammeln
         const inputs = {
             raumtyp: dom.raumtyp.value,
             gebaeudetyp: dom.gebaeudetyp.value,
@@ -84,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         const raumflaeche = inputs.laenge * inputs.breite;
-        if (raumflaeche === 0) return; // Abbruch bei fehlenden Maßen
+        if (raumflaeche === 0) return;
 
         const raumvolumen = raumflaeche * inputs.hoehe;
         const wandflaeche = (inputs.laenge + inputs.breite) * 2 * inputs.hoehe - inputs.fensterFlaeche;
@@ -97,10 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (raumSettings.maxPersonenProM2 > 0 && (inputs.personen / raumflaeche) > raumSettings.maxPersonenProM2) {
             hinweise.push(`💡 <strong>Personendichte:</strong> Die angegebene Personenzahl ist sehr hoch. Beachten Sie die Vorgaben der Versammlungsstättenverordnung (VStättV), die oft max. 1-2 Pers./m² vorschreibt.`);
         }
-        if (inputs.raumtyp === 'labor') {
-            hinweise.push(`💡 <strong>Labor-Lüftung:</strong> Für Labore wird i.d.R. ein <strong>${raumSettings.luftwechsel}-facher Luftwechsel</strong> zur sicheren Verdünnung von Stoffen gefordert (gem. DGUV Information 213-850).`);
-        }
-
+        
         // 3. Luftvolumenstrom ermitteln
         const v_personen = inputs.personen * raumSettings.luftratePerson;
         const v_luftwechsel = raumvolumen * raumSettings.luftwechsel;
@@ -112,11 +106,20 @@ document.addEventListener('DOMContentLoaded', () => {
         if (v_luftwechsel > v_personen) v_info = "Raum-Luftwechsel";
         if (inputs.raumtyp === 'technik' && v_waermelast > v_final) v_info = "Wärmelastabfuhr";
         
+        // *** ÜBERARBEITETE HINWEIS-LOGIK FÜR LABORE ***
+        if (inputs.raumtyp === 'labor') {
+            if (v_luftwechsel > v_personen) {
+                 hinweise.push(`💡 <strong>Hinweis Labor:</strong> Der Luftvolumenstrom basiert auf dem empfohlenen <strong>${raumSettings.luftwechsel}-fachen Luftwechsel</strong> (gem. DGUV 213-850), da dieser den hygienischen Mindestbedarf übersteigt.`);
+            } else {
+                 hinweise.push(`✅ <strong>Hinweis Labor:</strong> Der hygienische Luftbedarf durch Personen (${v_personen.toFixed(0)} m³/h) übersteigt bereits den empfohlenen Mindest-Luftwechsel von ${v_luftwechsel.toFixed(0)} m³/h.`);
+            }
+        }
+        
         // 4. Heizlast berechnen
         const dt_winter = p.temperaturen.innen_winter - p.temperaturen.aussen_winter;
         const heizlast_transmission = (wandflaeche * gebaeudeSettings.u_wand + inputs.fensterFlaeche * gebaeudeSettings.u_fenster + raumflaeche * gebaeudeSettings.u_dach) * dt_winter;
         const heizlast_lueftung = v_final * p.cp_luft * dt_winter;
-        const heizlast_total_kw = (heizlast_transmission + heizlast_lueftung - waermelast_intern * 0.5) / 1000; // 50% der internen Lasten angenommen
+        const heizlast_total_kw = (heizlast_transmission + heizlast_lueftung - waermelast_intern * 0.5) / 1000; // 50% der internen Lasten im Winter angenommen
 
         // 5. Kühllast berechnen
         const kuehllast_sonne = inputs.fensterFlaeche * p.sonnenlast_fenster;
