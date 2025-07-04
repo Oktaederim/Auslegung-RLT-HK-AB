@@ -28,10 +28,12 @@
                     </select>
                 </div>
                 <div class="input-group">
-                    <label for="gebaeudetyp">Gebäudetyp (vereinfacht)</label>
+                    <label for="gebaeudetyp">Gebäudetyp (Dämmstandard)</label>
                     <select id="gebaeudetyp">
-                        <option value="altbau">Typ Hochschule Altbau (ca. 70er/80er)</option>
-                        <option value="modern">Typ Hochschule Modern (nach 2002)</option>
+                        <option value="unsaniert_alt">Altbau, unsaniert (vor 1977)</option>
+                        <option value="saniert_alt">Altbau, saniert (Standard 80er/90er)</option>
+                        <option value="enev2002">Bestand nach EnEV (ab 2002)</option>
+                        <option value="modern">Modern (GEG / Niedrigenergie)</option>
                     </select>
                 </div>
             </div>
@@ -68,6 +70,8 @@
                 </div>
             </div>
         </div>
+
+        <div id="hinweis-box" class="hinweis-box" style="display: none;"></div>
 
         <div class="card result-card">
             <h2>3. Ergebnis: Auslegungsbedarf</h2>
