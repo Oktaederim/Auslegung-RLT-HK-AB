@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bedarfsrechner (Schnell-Analyse)</title>
+    <title>Bedarfsrechner (Analyse-Tool)</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <div class="container">
     <header>
-        <h1>Bedarfsrechner (Schnell-Analyse)</h1>
-        <p class="subtitle">Ermittlung von Luftbedarf, Heiz- und Kühllast</p>
+        <h1>Bedarfsrechner (Analyse-Tool)</h1>
+        <p class="subtitle">Schnell-Analyse von Luftbedarf, Heiz- und Kühllast nach Norm-Grundlagen</p>
     </header>
 
     <main>
@@ -23,6 +23,7 @@
                     <select id="raumtyp">
                         <option value="buero">Büro / Verwaltung</option>
                         <option value="seminar">Seminar- / Besprechungsraum</option>
+                        <option value="hoersaal">Hörsaal</option>
                         <option value="labor">Labor (Standard)</option>
                         <option value="technik">Technik- / Serverraum</option>
                     </select>
@@ -71,6 +72,7 @@
             </div>
         </div>
 
+        <div id="sicherheitshinweis-box" class="sicherheitshinweis-box" style="display: none;"></div>
         <div id="hinweis-box" class="hinweis-box" style="display: none;"></div>
 
         <div class="card result-card">
