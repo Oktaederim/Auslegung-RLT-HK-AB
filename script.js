@@ -1,71 +1,5 @@
-document.addEventListener('DOMContentLoaded', () => {
-
-    const dom = {
-        // Inputs
-        raumtyp: document.getElementById('raumtyp'),
-        gebaeudetyp: document.getElementById('gebaeudetyp'),
-        raumLaenge: document.getElementById('raumLaenge'),
-        raumBreite: document.getElementById('raumBreite'),
-        raumHoehe: document.getElementById('raumHoehe'),
-        fensterFlaeche: document.getElementById('fensterFlaeche'),
-        personenAnzahl: document.getElementById('personenAnzahl'),
-        geraeteLast: document.getElementById('geraeteLast'),
-        lichtLast: document.getElementById('lichtLast'),
-        // Results
-        resVolumenstrom: document.getElementById('res-volumenstrom'),
-        infoVolumenstrom: document.getElementById('info-volumenstrom'),
-        resHeizlast: document.getElementById('res-heizlast'),
-        resKuehllast: document.getElementById('res-kuehllast'),
-        erlaeuterung: document.getElementById('erlaeuterung'),
-        // Hinweis-Box
-        hinweisBox: document.getElementById('hinweis-box'),
-    };
-
-    const allInputs = document.querySelectorAll('input, select');
-    allInputs.forEach(input => input.addEventListener('input', calculateAll));
-
-    const presets = {
-        raumtypen: {
-            buero: { personenLast: 100, luftratePerson: 36, luftwechsel: 0, maxPersonenProM2: 0.2 }, // 5 m²/Person
-            seminar: { personenLast: 120, luftratePerson: 36, luftwechsel: 0, maxPersonenProM2: 1.0 }, // 1 Person/m²
-            labor: { personenLast: 140, luftratePerson: 36, luftwechsel: 8, maxPersonenProM2: 0.2 },
-            technik: { personenLast: 0, luftratePerson: 0, luftwechsel: 2, maxPersonenProM2: 0 },
-        },
-        gebaeude: {
-            unsaniert_alt: { u_wand: 1.4, u_fenster: 2.8, u_dach: 0.8 },
-            saniert_alt: { u_wand: 0.8, u_fenster: 1.9, u_dach: 0.4 },
-            enev2002: { u_wand: 0.4, u_fenster: 1.3, u_dach: 0.25 },
-            modern: { u_wand: 0.25, u_fenster: 0.9, u_dach: 0.18 },
-        },
-        temperaturen: {
-            innen_winter: 21, aussen_winter: -10,
-            innen_sommer: 24, aussen_sommer: 32,
-        },
-        sonnenlast_fenster: 150,
-        cp_luft: 0.34,
-    };
-
-    function updateDefaults() {
-        const raumtyp = dom.raumtyp.value;
-        if (raumtyp === 'technik') {
-            dom.personenAnzahl.value = 0;
-            dom.geraeteLast.value = 5000;
-        } else if (raumtyp === 'labor') {
-            dom.personenAnzahl.value = 2;
-            dom.geraeteLast.value = 1500;
-        } else if (raumtyp === 'seminar') {
-             dom.personenAnzahl.value = 15;
-            dom.geraeteLast.value = 500;
-        } else {
-            dom.personenAnzahl.value = 4;
-            dom.geraeteLast.value = 800;
-        }
-        calculateAll();
-    }
-    
-    dom.raumtyp.addEventListener('change', updateDefaults);
-
-    function calculateAll() {
+function calculateAll() {
+        const sicherheitshinweise = [];
         const hinweise = []; 
         
         const inputs = {
@@ -84,72 +18,71 @@ document.addEventListener('DOMContentLoaded', () => {
         if (raumflaeche === 0) return;
 
         const raumvolumen = raumflaeche * inputs.hoehe;
-        const wandflaeche = (inputs.laenge + inputs.breite) * 2 * inputs.hoehe - inputs.fensterFlaeche;
-
         const p = presets;
         const raumSettings = p.raumtypen[inputs.raumtyp];
         const gebaeudeSettings = p.gebaeude[inputs.gebaeudetyp];
-
-        // 2. Hinweise generieren
-        if (raumSettings.maxPersonenProM2 > 0 && (inputs.personen / raumflaeche) > raumSettings.maxPersonenProM2) {
-            hinweise.push(`💡 <strong>Personendichte:</strong> Die angegebene Personenzahl ist sehr hoch. Beachten Sie die Vorgaben der Versammlungsstättenverordnung (VStättV), die oft max. 1-2 Pers./m² vorschreibt.`);
-        }
         
-        // 3. Luftvolumenstrom ermitteln
         const v_personen = inputs.personen * raumSettings.luftratePerson;
         const v_luftwechsel = raumvolumen * raumSettings.luftwechsel;
+        const v_flaeche = raumflaeche * (raumSettings.luftrateFlaeche || 0);
+        
         const waermelast_intern = inputs.personen * raumSettings.personenLast + inputs.geraete + inputs.licht;
         const v_waermelast = waermelast_intern / (p.cp_luft * (p.temperaturen.aussen_sommer - p.temperaturen.innen_sommer));
         
-        let v_final = Math.max(v_personen, v_luftwechsel, (inputs.raumtyp === 'technik' ? v_waermelast : 0));
-        let v_info = "Hygiene (Personen)";
-        if (v_luftwechsel > v_personen) v_info = "Raum-Luftwechsel";
-        if (inputs.raumtyp === 'technik' && v_waermelast > v_final) v_info = "Wärmelastabfuhr";
+        const kandidaten = {
+            'Hygiene': v_personen,
+            'Mindest-Luftwechsel': v_luftwechsel,
+            'Flächenrate': v_flaeche,
+            'Wärmelastabfuhr': (inputs.raumtyp === 'technik' || inputs.raumtyp === 'hoersaal' ? v_waermelast : 0)
+        };
         
-        // *** ÜBERARBEITETE HINWEIS-LOGIK FÜR LABORE ***
-        if (inputs.raumtyp === 'labor') {
-            if (v_luftwechsel > v_personen) {
-                 hinweise.push(`💡 <strong>Hinweis Labor:</strong> Der Luftvolumenstrom basiert auf dem empfohlenen <strong>${raumSettings.luftwechsel}-fachen Luftwechsel</strong> (gem. DGUV 213-850), da dieser den hygienischen Mindestbedarf übersteigt.`);
-            } else {
-                 hinweise.push(`✅ <strong>Hinweis Labor:</strong> Der hygienische Luftbedarf durch Personen (${v_personen.toFixed(0)} m³/h) übersteigt bereits den empfohlenen Mindest-Luftwechsel von ${v_luftwechsel.toFixed(0)} m³/h.`);
+        let v_final = 0;
+        let v_info = 'Kein Bedarf';
+        for (const [key, value] of Object.entries(kandidaten)) {
+            if (value > v_final) {
+                v_final = value;
+                v_info = key;
             }
         }
         
-        // 4. Heizlast berechnen
+        const personen_pro_m2 = inputs.personen / raumflaeche;
+        if (raumSettings.maxPersonenProM2 > 0 && personen_pro_m2 > raumSettings.maxPersonenProM2) {
+            const empfohlene_pers = Math.floor(raumflaeche * raumSettings.maxPersonenProM2);
+            sicherheitshinweise.push(`⚠️ <strong>Personendichte:</strong> Die Dichte von <strong>${personen_pro_m2.toFixed(1)} Pers./m²</strong> ist sehr hoch. Empfohlen sind ca. <strong>${raumSettings.maxPersonenProM2.toFixed(1)} Pers./m²</strong> (max. ${empfohlene_pers} Personen für diesen Raum).`);
+        }
+        
+        if (inputs.raumtyp === 'labor') {
+            hinweise.push(`💡 <strong>Normbezug Labor:</strong> Der Luftbedarf wird aus dem höchsten Wert von Personenbedarf, <strong>${raumSettings.luftwechsel}-fachem Luftwechsel</strong> oder <strong>${raumSettings.luftrateFlaeche} m³/h pro m²</strong> ermittelt (gem. TRGS 526 / DIN 1946-7).`);
+        } else if (['buero', 'seminar', 'hoersaal'].includes(inputs.raumtyp)) {
+             hinweise.push(`💡 <strong>Normbezug Büro/Seminar/Hörsaal:</strong> Der Luftbedarf pro Person von <strong>${raumSettings.luftratePerson} m³/h</strong> entspricht den Anforderungen der Arbeitsstättenregel (ASR A3.6).`);
+        } else if (inputs.raumtyp === 'technik') {
+             hinweise.push(`💡 <strong>Normbezug Technik/Serverraum:</strong> Die Auslegung erfolgt primär nach Wärmelast. Ein Mindestluftwechsel von <strong>${raumSettings.luftwechsel} 1/h</strong> dient zur Grundlüftung (vgl. VDI 2054).`);
+        }
+        
+        const kuehllast_total_w = waermelast_intern + (inputs.fensterFlaeche * p.sonnenlast_fenster);
+        const temp_ohne_kuehlung = v_final > 0 ? p.temperaturen.aussen_sommer + kuehllast_total_w / (v_final * p.cp_luft) : p.temperaturen.aussen_sommer + kuehllast_total_w;
+        if (temp_ohne_kuehlung > p.temperaturen.max_asr) {
+            sicherheitshinweise.push(`⚠️ <strong>Temperatur-Check (ASR A3.5):</strong> Ohne Kühlung würde die Raumtemperatur ca. <strong>${temp_ohne_kuehlung.toFixed(1)}°C</strong> erreichen. Maßnahmen zur Temperatursenkung sind erforderlich.`);
+        }
+        
         const dt_winter = p.temperaturen.innen_winter - p.temperaturen.aussen_winter;
-        const heizlast_transmission = (wandflaeche * gebaeudeSettings.u_wand + inputs.fensterFlaeche * gebaeudeSettings.u_fenster + raumflaeche * gebaeudeSettings.u_dach) * dt_winter;
+        const heizlast_transmission = ( (inputs.laenge + inputs.breite) * 2 * inputs.hoehe - inputs.fensterFlaeche) * gebaeudeSettings.u_wand * dt_winter + inputs.fensterFlaeche * gebaeudeSettings.u_fenster * dt_winter + raumflaeche * gebaeudeSettings.u_dach * dt_winter;
         const heizlast_lueftung = v_final * p.cp_luft * dt_winter;
-        const heizlast_total_kw = (heizlast_transmission + heizlast_lueftung - waermelast_intern * 0.5) / 1000; // 50% der internen Lasten im Winter angenommen
+        const heizlast_total_kw = (heizlast_transmission + heizlast_lueftung - waermelast_intern * 0.5) / 1000;
 
-        // 5. Kühllast berechnen
-        const kuehllast_sonne = inputs.fensterFlaeche * p.sonnenlast_fenster;
-        const kuehllast_total_kw = (waermelast_intern + kuehllast_sonne) / 1000;
-
-        // 6. Ergebnisse anzeigen
         dom.resVolumenstrom.textContent = `${Math.ceil(v_final)} m³/h`;
         dom.infoVolumenstrom.textContent = `Grundlage: ${v_info}`;
         dom.resHeizlast.textContent = `${heizlast_total_kw.toFixed(2)} kW`;
-        dom.resKuehllast.textContent = `${kuehllast_total_kw.toFixed(2)} kW`;
+        dom.resKuehllast.textContent = `${(kuehllast_total_w / 1000).toFixed(2)} kW`;
         
+        // *** NEU: Detaillierte Formel-Anzeige ***
         dom.erlaeuterung.innerHTML = `
-            <p><strong>Detaillierter Luftbedarf:</strong>
-            Personen: ${v_personen.toFixed(0)} m³/h | 
-            Luftwechsel: ${v_luftwechsel.toFixed(0)} m³/h | 
-            Wärmelast: ${v_waermelast > 0 ? v_waermelast.toFixed(0) : 0} m³/h</p>
-            <p><strong>Detaillierte Kühllast:</strong>
-            Interne Lasten: ${(waermelast_intern / 1000).toFixed(2)} kW | 
-            Sonneneinstrahlung: ${(kuehllast_sonne / 1000).toFixed(2)} kW</p>
+            <p style="margin-bottom: 0.8rem;"><strong>Zusammensetzung Luftbedarf:</strong></p>
+            <p>Personen: ${inputs.personen} Pers. × ${raumSettings.luftratePerson} m³/h/Pers. = <strong>${v_personen.toFixed(0)} m³/h</strong></p>
+            <p>Luftwechsel: ${raumvolumen.toFixed(1)} m³ × ${raumSettings.luftwechsel} 1/h = <strong>${v_luftwechsel.toFixed(0)} m³/h</strong></p>
+            <p>Flächenbedarf: ${raumflaeche.toFixed(1)} m² × ${raumSettings.luftrateFlaeche || 0} m³/h/m² = <strong>${v_flaeche.toFixed(0)} m³/h</strong></p>
         `;
 
-        // 7. Hinweise anzeigen oder ausblenden
-        if (hinweise.length > 0) {
-            dom.hinweisBox.innerHTML = hinweise.map(h => `<p>${h}</p>`).join('');
-            dom.hinweisBox.style.display = 'block';
-        } else {
-            dom.hinweisBox.style.display = 'none';
-        }
+        renderHinweise(dom.hinweisBox, hinweise);
+        renderHinweise(dom.sicherheitshinweisBox, sicherheitshinweise);
     }
-
-    // Initiale Berechnung beim Laden der Seite
-    updateDefaults();
-});
