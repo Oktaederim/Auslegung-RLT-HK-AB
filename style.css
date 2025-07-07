@@ -5,8 +5,10 @@
     --border-color: #dee2e6;
     --card-bg: #fff;
     --result-bg: #e9f5ff;
-    --hinweis-bg: #fffbe6;
-    --hinweis-border: #ffe58f;
+    --hinweis-bg: #e6f7ff;
+    --hinweis-border: #91d5ff;
+    --sicherheit-bg: #fffbe6;
+    --sicherheit-border: #ffe58f;
 }
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -28,7 +30,7 @@ h2 { font-size: 1.6rem; color: var(--primary-color); border-bottom: 2px solid va
     border-radius: 12px;
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
     padding: 1.5rem 2rem;
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
 }
 .grid-container {
     display: grid;
@@ -46,7 +48,7 @@ h2 { font-size: 1.6rem; color: var(--primary-color); border-bottom: 2px solid va
     box-sizing: border-box;
 }
 .dimension-group { display: flex; gap: 0.5rem; }
-.result-card { background-color: var(--result-bg); }
+.result-card { background-color: var(--result-bg); margin-top: 1.5rem; }
 .result-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -66,23 +68,29 @@ h2 { font-size: 1.6rem; color: var(--primary-color); border-bottom: 2px solid va
 .erlaeuterung {
     margin-top: 2rem;
     padding: 1rem;
-    background: #fff;
-    border-left: 4px solid var(--primary-color);
+    background: #f8f9fa;
+    border-left: 4px solid var(--border-color);
     font-size: 0.9rem;
 }
-/* NEU: Stile für die Hinweis-Box */
+.erlaeuterung p { margin: 0.5rem 0; }
+.hinweis-box, .sicherheitshinweis-box {
+    border-radius: 8px;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+}
 .hinweis-box {
     background-color: var(--hinweis-bg);
     border: 1px solid var(--hinweis-border);
-    border-left: 5px solid var(--hinweis-border);
-    border-radius: 8px;
-    padding: 1rem 1.5rem;
-    margin-bottom: 2rem;
 }
-.hinweis-box p {
+.sicherheitshinweis-box {
+    background-color: var(--sicherheit-bg);
+    border: 1px solid var(--sicherheit-border);
+    border-left: 5px solid var(--sicherheit-border);
+}
+.hinweis-box p, .sicherheitshinweis-box p {
     margin: 0.5rem 0;
     font-size: 0.95rem;
 }
-.hinweis-box p:first-child { margin-top: 0; }
-.hinweis-box p:last-child { margin-bottom: 0; }
+.hinweis-box p:first-child, .sicherheitshinweis-box p:first-child { margin-top: 0; }
+.hinweis-box p:last-child, .sicherheitshinweis-box p:last-child { margin-bottom: 0; }
 .footer { text-align: center; margin-top: 2rem; color: #888; font-size: 0.9rem; }
