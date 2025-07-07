@@ -25,7 +25,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const allInputs = document.querySelectorAll('input, select');
     allInputs.forEach(input => input.addEventListener('input', calculateAll));
 
-    // --- Voreinstellungen und Konstanten basierend auf Normen ---
     const presets = {
         raumtypen: {
             buero: { personenLast: 100, luftratePerson: 30, luftwechsel: 3, maxPersonenProM2: 0.125 },
