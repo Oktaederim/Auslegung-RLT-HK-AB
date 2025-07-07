@@ -94,3 +94,46 @@ h2 { font-size: 1.6rem; color: var(--primary-color); border-bottom: 2px solid va
 .hinweis-box p:first-child, .sicherheitshinweis-box p:first-child { margin-top: 0; }
 .hinweis-box p:last-child, .sicherheitshinweis-box p:last-child { margin-bottom: 0; }
 .footer { text-align: center; margin-top: 2rem; color: #888; font-size: 0.9rem; }
+
+.formula-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    margin-top: 1.5rem;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+}
+.formula-card summary {
+    font-weight: bold;
+    color: var(--primary-color);
+    padding: 1rem 1.5rem;
+    cursor: pointer;
+    outline: none;
+    font-size: 1.1rem;
+}
+.formula-card[open] summary {
+    border-bottom: 1px solid var(--border-color);
+}
+.formula-content {
+    padding: 0.5rem 1.5rem 1.5rem 1.5rem;
+}
+.formula-content h4 {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    color: var(--text-color);
+    font-size: 1.1rem;
+}
+.formula-content ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+.formula-content li {
+    margin-bottom: 1rem;
+}
+.formula-content p {
+    margin: 0.2rem 0 0 1rem;
+    font-family: monospace, "Courier New", Courier;
+    background: #e9ecef;
+    padding: 0.5rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
